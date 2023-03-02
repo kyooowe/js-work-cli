@@ -20,9 +20,6 @@ npx js-work-cli
 
 ## Documentation
 
-#### Running the JSF-Work-CLI
-Run npx js-work-cli in terminal.
-
 #### React Supported file
 - Plain 
 - Built in UseState
