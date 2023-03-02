@@ -12,6 +12,12 @@ A easy to use Javascript/Typecript framework for generating file using CLI. NPM 
 npm i js-work-cli
 ```
 
+## Running the CLI
+
+```
+npx js-work-cli
+```
+
 ## Documentation
 
 #### Running the JSF-Work-CLI
