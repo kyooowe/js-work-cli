@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 //#region Import
-import fs from "fs"
 import inquirer from "inquirer"
 import path from 'path'
 import chalk from 'chalk';
-import chalkAnimation from 'chalk-animation';
 import boxen from 'boxen';
 import figlet from "figlet"
 
@@ -15,8 +13,12 @@ import reactQuestions from "./src/prompt/react-prompt.js"
 
 // variables
 let answers = []
-const currentPath = path.resolve()
 
+/**
+ * @name welcome - welcome message
+ * @param null
+ * @returns null
+ */
 async function welcome() {
 
     console.log(chalk.greenBright(figlet.textSync('JS Work-CLI', { horizontalLayout: 'full', whitespaceBreak: true })))
@@ -39,6 +41,12 @@ async function welcome() {
 
 }
 
+/**
+ * @name askQuestions - initial prompt message
+ * @event reactQuestions - run reactQuestions when the user select React as framework
+ * @param null
+ * @returns null
+ */
 async function askQuestions() {
     answers = await inquirer.prompt([
         {
@@ -54,34 +62,6 @@ async function askQuestions() {
 
 }
 
-async function doAnswers() {
-
-    let destinationPath = `${currentPath}/${answers.path}/`
-    let fileToCopyPath = ""
-    let snippetsPath = ""
-    let type = ""
-
-    if (answers.framework === 'React')
-        snippetsPath = "./src/react-snippets/react"
-
-    if (answers.type === "JS")
-        type = ".js"
-    else
-        type = ".ts"
-
-    fileToCopyPath = `${fileToCopyPath}${snippetsPath}${type}`
-    destinationPath = `${destinationPath}${answers.name}${type}`
-
-    fs.copyFile(fileToCopyPath, destinationPath, (err) => {
-        if (err)
-            throw err;
-
-        console.log(`${answers.name}.${answers.type} is now active in ${answers.path}`)
-    })
-
-}
-
-
+// Workers
 await welcome()
 await askQuestions()
-// await doAnswers()
