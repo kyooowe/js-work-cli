@@ -20,21 +20,28 @@ npx js-work-cli
 
 ## Documentation
 
-#### React Supported file
+#### React Supported File
 - Plain 
-- Built in UseState
-- Built in UseEffect
-- Built in UseRef
-- Built in UseState with UseEffect
-- Built in UseState, UseEffect and UseRef
+- Custom UseState
+- Custom UseEffect
+- Custom UseRef
+- Custom UseState with UseEffect
+- Custom UseState, UseEffect and UseRef
 
-More customize file coming soon.
+#### Express Supported File
+- Express Config
+- Mongoose Config
+- Custom Routes
+- Custom Mongoose Schema
+- CRUD (Controller, Routes and Schema. Interface included if user select TS as file type)
+
+More custom file coming soon.
 
 ## Supported Languages
 - React (Javascript and Typecript)
+- Express (Javascript and Typecript)
 
 ## Soon to Support Languages
-- Express (Javascript and Typecript)
 - Vue
 - Svelte
 

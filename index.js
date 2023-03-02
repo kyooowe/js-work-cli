@@ -8,8 +8,10 @@ import boxen from 'boxen';
 import figlet from "figlet"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
+
 // Prompt
-import reactQuestions from "./src/prompt/react-prompt.js"
+import reactPrompt from "./src/prompt/react-prompt.js"
+import expressPrompt from "./src/prompt/express-prompt.js";
 //#endregion
 
 // variables
@@ -63,7 +65,9 @@ async function askQuestions() {
     ])
 
     if (answers.framework === 'React')
-        await reactQuestions(__dirname)
+        await reactPrompt(__dirname)
+    if(answers.framework === 'Express')
+        await expressPrompt(__dirname)
 
 }
 

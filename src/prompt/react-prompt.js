@@ -16,8 +16,8 @@ let finalAnswer
 const currentPath = path.resolve()
 //#endregion
 
-//#region Hooks Choices
-const hooks = [
+//#region Options
+const options = [
     { name: 'Plain useState', file: 'pState' },
     { name: 'Plain useEffect', file: 'pEffect' },
     { name: 'Plain useRef', file: 'pRef' },
@@ -27,11 +27,11 @@ const hooks = [
 //#endregion
 
 /**
- * @name reactQuestions - creates react promp questions
- * @param null
+ * @name reactPrompt - creates react prompt questions
+ * @param directory - current path 
  * @returns null
  */
-export default async function reactQuestions(directory) {
+export default async function reactPrompt(directory) {
     answers = await inquirer.prompt([
         {
             type: "list",
@@ -47,10 +47,10 @@ export default async function reactQuestions(directory) {
     ])
 
     if (answers.hooksConfirmation) {
-        await reactHookConfirmation()
+        await reactHooksPrompt()
     }
 
-    await reactFinalQuestion()
+    await reactFinalPrompt()
     await worker(directory)
 }
 
@@ -59,14 +59,14 @@ export default async function reactQuestions(directory) {
  * @param null
  * @returns null
  */
-async function reactHookConfirmation() {
+async function reactHooksPrompt() {
 
     hooksAnswer = await inquirer.prompt([
         {
             type: "list",
             name: "starterChoice",
             message: "Select starter file you want:",
-            choices: hooks.map(h => h.name)
+            choices: options.map(h => h.name)
         }
     ])
 
@@ -77,7 +77,7 @@ async function reactHookConfirmation() {
  * @param null
  * @returns null
  */
-async function reactFinalQuestion() {
+async function reactFinalPrompt() {
     finalAnswer = await inquirer.prompt([
         {
             type: "input",
@@ -126,7 +126,7 @@ async function worker(directory) {
             snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/plain${type}`
         else {
 
-            const hook = hooks.filter(h => h.name === absoluteAnswers.starterChoice)
+            const hook = options.filter(h => h.name === absoluteAnswers.starterChoice)
             snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/${hook[0].file}${type}`
         }
 
@@ -138,16 +138,25 @@ async function worker(directory) {
         await MiddleMessage()
 
         // Workers
-        if (fs.existsSync(destinationPathFolder))
-            fs.promises.copyFile(snippetsPath, destinationPathWithFile).then(() => {
-                CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-            })
-        else
-            CreateDirectories(destinationPathFolder).then(() => {
-                fs.promises.copyFile(snippetsPath, destinationPathWithFile).then(() => {
-                    CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-                })
-            })
+        if (fs.existsSync(destinationPathFolder)) {
+
+            // Copy custom file to destination
+            await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+
+            // Renaming the function based on input fileName
+            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
+        }
+        else {
+
+            // Create directories
+            await CreateDirectories(destinationPathFolder)
+
+            // Copy custom file to destination
+            await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+            
+            // Renaming the function based on input fileName
+            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
+        }
 
         // Console Message
         await FinalMessage(absoluteAnswers.fileName, type)
