@@ -4,7 +4,7 @@ import inquirer from "inquirer"
 import path from 'path'
 import fs from "fs"
 import Message from "../message/message.js"
-import { CorrectingNameInFile } from "../helper/helper.js"
+import { CorrectingNameInFile, CreateDirectories } from "../helper/helper.js"
 const { PreparingMessage, MiddleMessage, FinalMessage, ErrorMessage } = Message()
 //#endregion
 
@@ -31,7 +31,7 @@ const hooks = [
  * @param null
  * @returns null
  */
-export default async function reactQuestions() {
+export default async function reactQuestions(directory) {
     answers = await inquirer.prompt([
         {
             type: "list",
@@ -51,7 +51,7 @@ export default async function reactQuestions() {
     }
 
     await reactFinalQuestion()
-    await worker()
+    await worker(directory)
 }
 
 /**
@@ -101,60 +101,57 @@ async function reactFinalQuestion() {
  * @var type - file type
  * @returns null
  */
-async function worker() {
+async function worker(directory) {
 
-    // Merge all answers
-    const absoluteAnswers = { ...answers, ...hooksAnswer, ...finalAnswer }
+    try {
+        // Merge all answers
+        const absoluteAnswers = { ...answers, ...hooksAnswer, ...finalAnswer }
 
-    // Console Message
-    PreparingMessage(absoluteAnswers.fileName)
+        // Console Message
+        await PreparingMessage(absoluteAnswers.fileName)
 
-    // Variables
-    let destinationPathFolder = `${currentPath}/`
-    let destinationPathWithFile = `${currentPath}/`
-    let snippetsPath = "./src/snippets/react-snippets/"
-    let type = ""
+        // Variables
+        let destinationPathFolder = `${currentPath}/`
+        let destinationPathWithFile = `${currentPath}/`
+        let snippetsPath = `${directory}/src/snippets/react-snippets/`
+        let type = ""
 
-    // Answer condition
-    if (absoluteAnswers.type === "JSX")
-        type = ".jsx"
-    else
-        type = ".tsx"
+        // Answer condition
+        if (absoluteAnswers.type === "JSX")
+            type = ".jsx"
+        else
+            type = ".tsx"
 
-    if (!absoluteAnswers.hooksConfirmation)
-        snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/plain.jsx`
-    else {
+        if (!absoluteAnswers.hooksConfirmation)
+            snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/plain${type}`
+        else {
 
-        const hook = hooks.filter(h => h.name === absoluteAnswers.starterChoice)
-        snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/${hook[0].file}.jsx`
+            const hook = hooks.filter(h => h.name === absoluteAnswers.starterChoice)
+            snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/${hook[0].file}${type}`
+        }
+
+        // Getting the exact destination file
+        destinationPathFolder = `${destinationPathFolder}${absoluteAnswers.createPath}`
+        destinationPathWithFile = `${destinationPathWithFile}${absoluteAnswers.createPath}/${absoluteAnswers.fileName}${type}`
+
+        // Console Message
+        await MiddleMessage()
+
+        // Workers
+        if (fs.existsSync(destinationPathFolder))
+            fs.promises.copyFile(snippetsPath, destinationPathWithFile).then(() => {
+                CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
+            })
+        else
+            CreateDirectories(destinationPathFolder).then(() => {
+                fs.promises.copyFile(snippetsPath, destinationPathWithFile).then(() => {
+                    CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
+                })
+            })
+
+        // Console Message
+        await FinalMessage(absoluteAnswers.fileName, type)
+    } catch (err) {
+        ErrorMessage()
     }
-
-    // Getting the exact destination file
-    destinationPathFolder = `${destinationPathFolder}${absoluteAnswers.createPath}`
-    destinationPathWithFile = `${destinationPathWithFile}${absoluteAnswers.createPath}/${absoluteAnswers.fileName}${type}`
-
-    // Console Message
-    MiddleMessage()
-
-    // Workers
-    if (fs.existsSync(destinationPathFolder))
-        fs.copyFile(snippetsPath, destinationPathWithFile, (err) => {
-            if (err)
-                ErrorMessage()
-
-            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-        })
-    else {
-        fs.mkdirSync(destinationPathFolder)
-
-        fs.copyFile(snippetsPath, destinationPathWithFile, (err) => {
-            if (err)
-                ErrorMessage()
-
-            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-        })
-    }
-
-    // Console Message
-    FinalMessage(absoluteAnswers.fileName, type)
 }

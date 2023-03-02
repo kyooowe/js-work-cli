@@ -16,4 +16,8 @@ const CorrectingNameInFile = (path, oldName, newName) => {
     })
 }
 
-export { CorrectingNameInFile }
+const CreateDirectories = async (path) => {
+    await fs.promises.mkdir(path, { recursive: true })
+}
+
+export { CorrectingNameInFile, CreateDirectories }

@@ -1,6 +1,6 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
+  "name": "js-work-cli",
+  "version": "1.0.7-beta",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -10,11 +10,16 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bin": "./index.js",
   "dependencies": {
     "boxen": "^7.0.1",
     "chalk": "^5.2.0",
     "chalk-animation": "^2.0.3",
     "figlet": "^1.5.2",
     "inquirer": "^9.1.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kyooowe/js-work-cli"
   }
 }

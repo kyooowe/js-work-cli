@@ -6,7 +6,8 @@ import path from 'path'
 import chalk from 'chalk';
 import boxen from 'boxen';
 import figlet from "figlet"
-
+import { dirname } from "path"
+import { fileURLToPath } from "url"
 // Prompt
 import reactQuestions from "./src/prompt/react-prompt.js"
 //#endregion
@@ -48,6 +49,10 @@ async function welcome() {
  * @returns null
  */
 async function askQuestions() {
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+
     answers = await inquirer.prompt([
         {
             type: "list",
@@ -58,7 +63,7 @@ async function askQuestions() {
     ])
 
     if (answers.framework === 'React')
-        await reactQuestions()
+        await reactQuestions(__dirname)
 
 }
 

@@ -4,20 +4,20 @@ import chalk from "chalk"
 
 const Message = () => {
 
-    const PreparingMessage = (fileName) => {
+    const PreparingMessage = async (fileName) => {
         console.log(chalk.blueBright(`\nPreparing ${fileName} for creation, standby and sip your coffee. 🍵`))
         console.log(chalk.blueBright('Customizing the file base on your input request. 🔧🔨\n'))
-        setTimeout((""), 500)
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const MiddleMessage = () => {
+    const MiddleMessage = async () => {
         console.log(chalk.blueBright('Finalizing the file.....\n'))
-        setTimeout((""), 500)
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const FinalMessage = (fileName, type) => {
+    const FinalMessage = async (fileName, type) => {
         console.log(chalk.blueBright(`${fileName}${type} is now ready! Thanks for using JS Work-CLI. 💙💚 \n`))
-        setTimeout((""), 500)
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     const ErrorMessage = () => {
