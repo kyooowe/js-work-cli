@@ -1,7 +1,7 @@
 
 ![Logo](https://mir-s3-cdn-cf.behance.net/project_modules/1400/74731f76965389.5c7945b0cfcc3.gif)
 
-# JSF Work-CLI
+# JS Work-CLI
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
 A easy to use Javascript/Typecript framework for generating file using CLI.
@@ -9,7 +9,7 @@ A easy to use Javascript/Typecript framework for generating file using CLI.
 ## Installation
 
 ``` bash
-npm i jsf-work-cli
+npm i js-work-cli
 ```
 
 ## Documentation
