@@ -4,12 +4,18 @@
 # JS Work-CLI
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
-A easy to use Javascript/Typecript framework for generating file using CLI.
+A easy to use Javascript/Typecript framework for generating file using CLI. NPM link [here](https://www.npmjs.com/package/js-work-cli)
 
 ## Installation
 
 ``` bash
 npm i js-work-cli
+```
+
+## Running the CLI
+
+```
+npx js-work-cli
 ```
 
 ## Documentation
