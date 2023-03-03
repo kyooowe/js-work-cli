@@ -56,8 +56,8 @@ npx js-work-cli express mConfig core/configurations mongoose.config ts
 ```
 Result in folder view:
  ```
-    - core (folder)
-        - configurations (folder)
+    - core (cli generated folder)
+        - configurations (cli generated folder)
             - cronjob.config.ts (sample file)
             - express.config.ts (sample file)
             - moongose.config.ts (cli generated template file)
@@ -71,17 +71,19 @@ npx js-work-cli react httpService core/services _ ts
 ```
 Result in folder view:
  ```
-    - core (folder)
-        - services (folder)
-            - httpRequest (folder)
-                - apiService (file) // Sample usage of API
-                - baseService (file) // Custom HttpService using axios
+    - core (cli generated folder)
+        - services (cli generated folder)
+            - httpRequest (cli generated folder)
+                - apiService (cli generated template file) // Sample usage of API
+                - baseService (cli generated template file) // Custom HttpService using axios
     - pages (sample folder)
     - src (sample folder)
     - app.js (sample file)
     - app.css (sample file)
     - index.js (sample file)
  ```
+ 
+Note: that the **CLI Generated folder** will only manifest itself if it is not currently active within your project directory. Therefore, it is imperative that you do not become confused when viewing the **result folder above**.
 
 ## Supported Languages
 - React (Javascript and Typecript)
