@@ -15,16 +15,29 @@ const Message = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const FinalMessage = async (fileName, type) => {
-        console.log(chalk.blueBright(`${fileName}${type} is now ready! Thanks for using JS Work-CLI. 💙💚 \n`))
+    const FinalMessage = async (filePath, fileName, fileType) => {
+        console.log(chalk.blueBright(`${filePath}/${fileName}.${fileType} is now ready! Thanks for using JS Work-CLI. 💙💚 \n`))
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const ErrorMessage = () => {
-        console.log(chalk.blueBright('Error occured, you can start again to try our JS Work-CLI. \n'))
+    const CustomMessage = async (message) => {
+        console.log(chalk.blueBright(`${message}\n`))
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    return { PreparingMessage, MiddleMessage, FinalMessage, ErrorMessage }
+    const InfoMessage = async (message) => {
+        console.log(chalk.green(`${message}\n`))
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    const ErrorMessage = (customMessage) => {
+        if (customMessage)
+            console.log(chalk.redBright(`${customMessage}\n`))
+        else
+            console.log(chalk.redBright('Error occured, you can start again to try our JS Work-CLI. \n'))
+    }
+
+    return { PreparingMessage, MiddleMessage, FinalMessage, CustomMessage, InfoMessage, ErrorMessage }
 }
 
 export default Message;
