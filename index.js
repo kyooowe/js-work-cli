@@ -1,76 +1,62 @@
 #!/usr/bin/env node
 
 //#region Import
-import inquirer from "inquirer"
-import path from 'path'
-import chalk from 'chalk';
-import boxen from 'boxen';
-import figlet from "figlet"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
+import yargs from "yargs";
+import { reactWorker } from "./src/prompt/react-prompt.js"
+import { expressWorker } from "./src/prompt/express-prompt.js";
+import Message from "./src/message/message.js";
+import { hideBin } from "yargs/helpers"
 
-// Prompt
-import reactPrompt from "./src/prompt/react-prompt.js"
-import expressPrompt from "./src/prompt/express-prompt.js";
+const argv = yargs(hideBin(process.argv)).argv
+const { ErrorMessage } = Message()
+
 //#endregion
 
-// variables
-let answers = []
 
 /**
- * @name welcome - welcome message
- * @param null
+ * @name compileArguments - worker for arguments inputed by the user
+ * 
+ * 
+ * @description usage: node . --framework --template --path --fileName --fileType
+ * @description example: node . react plain src/components button ts
+ * 
+ * 
+ * @var __filename - get the index.js directory path
+ * @var __dirname - get the directory of the project
+ * @var userArguments - get all arguments inputed by the user
+ * @var framework - get framework argument 
+ * @var template - get template argument  
+ * @var path - get path argument  
+ * @var fileName - get fileName argument  
+ * @var fileType - get fileType argument
  * @returns null
  */
-async function welcome() {
+async function compileArguments() {
 
-    console.log(chalk.greenBright(figlet.textSync('JS Work-CLI', { horizontalLayout: 'full', whitespaceBreak: true })))
-    console.log(
-        boxen(
-            chalk.blueBright(
-                `A helpful CLI for React and Express\n\n 
-        React: Easily create files with built in hooks of your choice
-        Express: Easily create built in services, models and templates\n
-
-        ${chalk.gray("PS: Vue, Svelte support coming soon")}
-        `
-            ), {
-            borderStyle: 'round',
-            textAlignment: 'center',
-            width: 82,
-            borderColor: 'blue'
-        }));
-    console.log('\n')
-
-}
-
-/**
- * @name askQuestions - initial prompt message
- * @event reactQuestions - run reactQuestions when the user select React as framework
- * @param null
- * @returns null
- */
-async function askQuestions() {
-
+    // Get the current directory
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
 
-    answers = await inquirer.prompt([
-        {
-            type: "list",
-            name: "framework",
-            message: "What framework are you using?",
-            choices: ['React', 'Express'],
-        },
-    ])
+    // Get the input arguments
+    const userArguments = argv._
 
-    if (answers.framework === 'React')
-        await reactPrompt(__dirname)
-    if(answers.framework === 'Express')
-        await expressPrompt(__dirname)
+    // Add to const value the specic arguments
+    const framework = userArguments[0]
+    const template = userArguments[1]
+    const path = userArguments[2]
+    const fileName = userArguments[3]
+    const fileType = userArguments[4]
 
+
+    if (framework === 'react')
+        await reactWorker(__dirname, template, path, fileName, fileType)
+    else if (framework === 'express')
+        await expressWorker(__dirname, template, path, fileName, fileType)
+    else
+        ErrorMessage()
 }
 
 // Workers
-await welcome()
-await askQuestions()
+await compileArguments()
