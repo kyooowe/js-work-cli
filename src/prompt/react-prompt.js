@@ -1,166 +1,238 @@
 
 //#region Import
-import inquirer from "inquirer"
 import path from 'path'
 import fs from "fs"
 import Message from "../message/message.js"
 import { CorrectingNameInFile, CreateDirectories } from "../helper/helper.js"
-const { PreparingMessage, MiddleMessage, FinalMessage, ErrorMessage } = Message()
-//#endregion
+import chalk from 'chalk'
+const { PreparingMessage, MiddleMessage, FinalMessage, CustomMessage, InfoMessage, ErrorMessage } = Message()
+//#endregionp
 
 //#region Local var
-let answers
-let hooksAnswer
-let finalAnswer
-
 const currentPath = path.resolve()
 //#endregion
 
 //#region Options
 const options = [
-    { name: 'Plain useState', file: 'pState' },
-    { name: 'Plain useEffect', file: 'pEffect' },
-    { name: 'Plain useRef', file: 'pRef' },
-    { name: 'Built in useState and useEffect', file: 'stateAndEffect' },
-    { name: 'Built in useState, useEffect and useRef', file: 'stateEffectAndRef' },
+    { file: 'plain', template: 'plain' },                 // Plain
+    { file: 'pState', template: 'pState' },               // Plain useState
+    { file: 'pEffect', template: 'pEffect' },             // Plain useEffect
+    { file: 'pRef', template: 'pRef' },                   // Plain useRef
+    { file: 'stateAndEffect', template: 'stef' },         // Built in useState and useEffect
+    { file: 'stateEffectAndRef', template: 'stefr' },     // Built in useState, useEffect and useRef
+    { file: 'httpService', template: 'httpService' },     // Custom Http Service with sample api request
+    { file: 'zustand', template: 'zustand' },             // Custom Zustand 
+    { file: 'debounce', template: 'debounce' }            // Custom Zustand 
 ]
 //#endregion
 
 /**
- * @name reactPrompt - creates react prompt questions
- * @param directory - current path 
- * @returns null
- */
-export default async function reactPrompt(directory) {
-    answers = await inquirer.prompt([
-        {
-            type: "list",
-            name: "type",
-            message: "What file type you need?",
-            choices: ['JSX', 'TSX']
-        },
-        {
-            type: "confirm",
-            name: "hooksConfirmation",
-            message: "Do you need built in hooks?"
-        }
-    ])
-
-    if (answers.hooksConfirmation) {
-        await reactHooksPrompt()
-    }
-
-    await reactFinalPrompt()
-    await worker(directory)
-}
-
-/**
- * @name reactHookConfirmation - fires only when react hooks confirmation is true
- * @param null
- * @returns null
- */
-async function reactHooksPrompt() {
-
-    hooksAnswer = await inquirer.prompt([
-        {
-            type: "list",
-            name: "starterChoice",
-            message: "Select starter file you want:",
-            choices: options.map(h => h.name)
-        }
-    ])
-
-}
-
-/**
- * @name reactFinalQuestion - create react last prompt questions
- * @param null
- * @returns null
- */
-async function reactFinalPrompt() {
-    finalAnswer = await inquirer.prompt([
-        {
-            type: "input",
-            name: "createPath",
-            message: "Where do you want to create the file? (eg. src/components):"
-        },
-        {
-            type: "input",
-            name: "fileName",
-            message: "Name of the file? special characters not allowed (eg. button):",
-        }
-    ])
-}
-
-/**
  * @name worker - this function immediately fires when all questions are done
- * @var absoluteAnswers - Merge all answers
+ * @param directory - current directory of the js-work-cli itself
+ * @param template - selected template of the user
+ * @param path - destination path inputed by the user
+ * @param fileName - user inputed filename for the template
+ * @param fileType - file type selected by user
  * @var destinationPathFolder - get the current path 
  * @var destinationPathWithFile - get the current path, this will be use to add the filename and the type (eg. C:Users/data/test.jsx)
  * @var snippetsPath - get the snippets path base on the user choice
- * @var type - file type
  * @returns null
  */
-async function worker(directory) {
+async function reactWorker(directory, template, path, fileName, fileType) {
 
     try {
-        // Merge all answers
-        const absoluteAnswers = { ...answers, ...hooksAnswer, ...finalAnswer }
-
         // Console Message
-        await PreparingMessage(absoluteAnswers.fileName)
+        await PreparingMessage(fileName)
 
         // Variables
-        let destinationPathFolder = `${currentPath}/`
+        let destinationPathFolder = `${currentPath}/${path}`
         let destinationPathWithFile = `${currentPath}/`
         let snippetsPath = `${directory}/src/snippets/react-snippets/`
-        let type = ""
+        let crudFiles = []
 
-        // Answer condition
-        if (absoluteAnswers.type === "JSX")
-            type = ".jsx"
-        else
-            type = ".tsx"
+        const templateObject = options.find((o) => o.template === template)
 
-        if (!absoluteAnswers.hooksConfirmation)
-            snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/plain${type}`
+        if (templateObject === undefined || template === null)
+            ErrorMessage(`Cant find template ${template}. Kindly suggest it so we can provide that template soon! 😉😇`)
         else {
+            switch (templateObject.template) {
 
-            const hook = options.filter(h => h.name === absoluteAnswers.starterChoice)
-            snippetsPath = `${snippetsPath}${type === ".jsx" ? "js" : "ts"}/${hook[0].file}${type}`
+                case "httpService":
+
+                    // Console Message
+                    await MiddleMessage()
+                    ReactHelperMessage('httpService', '')
+
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/httpRequest/`
+
+                    // Create object per file then push to crudFiles array
+                    const dir = await fs.promises.opendir(snippetsPath)
+
+                    // Create object base on file properties and store in crudFiles array
+                    for await (const file of dir) {
+                        crudFiles.push({ path: `${snippetsPath}${file.name}`, filename: file.name, destinationPath: `${destinationPathWithFile}${path}/${file.name}` })
+                    }
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom files to destination
+                        await Promise.all(crudFiles.map((file) => {
+                            fs.promises.copyFile(file.path, file.destinationPath)
+                        }))
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom files to destination
+                        await Promise.all(crudFiles.map((file) => {
+                            fs.promises.copyFile(file.path, file.destinationPath)
+                        }))
+                    }
+
+                    // Console Message
+                    await InfoMessage(`HttpService and sample API request already provided.`)
+                    await CustomMessage(`Custom HttpService template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
+
+                    break;
+                case 'zustand':
+
+                    // Console Message
+                    await MiddleMessage()
+                    ReactHelperMessage('zustand', '')
+
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/zustand.${fileType}`
+
+                    // Getting the destination file
+                    destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType}`
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+
+                    // Console Message
+                    await CustomMessage(`Zustand template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
+
+                    break;
+                case 'debounce':
+
+                    // Console Message
+                    await MiddleMessage()
+                    ReactHelperMessage('debounce', '')
+
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/debounce.${fileType}`
+
+                    // Getting the destination file
+                    destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType}`
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+
+                    // Console Message
+                    await CustomMessage(`Zustand template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
+
+                    break;
+                default: // React Hooks
+
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/${templateObject.file}.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Getting the destination file
+                    destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Console Message
+                    await MiddleMessage()
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+
+                        // Renaming the function based on input fileName
+                        CorrectingNameInFile(destinationPathWithFile, 'Unique', fileName)
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+
+                        // Renaming the function based on input fileName
+                        CorrectingNameInFile(destinationPathWithFile, 'Unique', fileName)
+                    }
+
+                    // Console Message
+                    await FinalMessage(path, fileName, fileType)
+                    break;
+            }
+
         }
 
-        // Getting the exact destination file
-        destinationPathFolder = `${destinationPathFolder}${absoluteAnswers.createPath}`
-        destinationPathWithFile = `${destinationPathWithFile}${absoluteAnswers.createPath}/${absoluteAnswers.fileName}${type}`
-
-        // Console Message
-        await MiddleMessage()
-
-        // Workers
-        if (fs.existsSync(destinationPathFolder)) {
-
-            // Copy custom file to destination
-            await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
-
-            // Renaming the function based on input fileName
-            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-        }
-        else {
-
-            // Create directories
-            await CreateDirectories(destinationPathFolder)
-
-            // Copy custom file to destination
-            await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
-            
-            // Renaming the function based on input fileName
-            CorrectingNameInFile(destinationPathWithFile, 'Unique', absoluteAnswers.fileName)
-        }
-
-        // Console Message
-        await FinalMessage(absoluteAnswers.fileName, type)
     } catch (err) {
         ErrorMessage()
     }
 }
+
+/**
+ * @name ReactHelperMessage - helper function for logging helper message
+ * @var starterChoice - file select by user
+ * @var fileType - file type
+ * @returns null
+ */
+const ReactHelperMessage = (starterChoice, fileType) => {
+    switch (starterChoice) {
+        case "httpService":
+            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
+            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('axios.')}`))
+            console.log(chalk.blueBright(`Example for installation dependencies: npm i axios\n`))
+            break;
+        case "zustand":
+            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
+            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('zustand.')}`))
+            console.log(chalk.blueBright(`Example for installation dependencies: npm i zustand\n`))
+            break;
+        case "debounce":
+            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
+            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('react.')}`))
+            console.log(chalk.blueBright(`Example for installation dependencies: npm i react\n`))
+
+            if (fileType === "js")
+                console.log(chalk.green('Debounce usage: const debounceValue = useDebounce(state, timer) \n'))
+            else
+                console.log(chalk.green('Debounce usage: const debounceValue = useDebounce<type>(state, timer) \n'))
+            break;
+    }
+}
+
+export { reactWorker }

@@ -1,182 +1,130 @@
 //#region Import
-import inquirer from "inquirer"
 import path from 'path'
 import fs from "fs"
 import Message from "../message/message.js"
 import chalk from "chalk"
-import { CorrectingNameInFile, CreateDirectories } from "../helper/helper.js"
-const { PreparingMessage, MiddleMessage, FinalMessage, ErrorMessage } = Message()
+import { CreateDirectories } from "../helper/helper.js"
+const { PreparingMessage, MiddleMessage, FinalMessage, CustomMessage, ErrorMessage } = Message()
 //#endregion
 
 //#region Local Var
-let answers
-let fileName
-
 const currentPath = path.resolve()
 //#endregion
 
 //#region Options
 const options = [
-    { name: 'Express Config', file: 'eConfig' },
-    { name: 'Mongoose Config', file: 'mConfig' },
-    { name: 'Routes', file: 'routes' },
-    { name: 'Schema (Mongoose)', file: 'schema' },
-    { name: 'CRUD', file: '' },
+    { file: 'eConfig', template: 'eConfig' },           // Express Config
+    { file: 'mConfig', template: 'mConfig' },           // Mongoose Config
+    { file: 'routes', template: 'routes' },             // Custom Routes
+    { file: 'schema', template: 'schema' },             // Schema (Mongoose)
+    { file: '', template: 'crud' },                     // CRUD (Create, Read, Update, Delete), contain files: Controller, Schema, Routes
 ]
 //#endregion
 
 /**
- * @name expressPrompt - creates express prompt questions
- * @param directory - current path 
- * @returns null
- */
-export default async function expressPrompt(directory) {
-    answers = await inquirer.prompt([
-        {
-            type: "list",
-            name: "type",
-            message: "What file type you need?",
-            choices: ['JS', 'TS']
-        },
-        {
-            type: "list",
-            name: "starterChoice",
-            message: "Select starter file you want:",
-            choices: options.map(h => h.name)
-        },
-        {
-            type: "input",
-            name: "createPath",
-            message: "Where do you want to create the file? (eg. src/core):"
-        },
-    ])
-
-    if (answers.starterChoice !== 'CRUD')
-        await fileNamePrompt()
-
-    await worker(directory)
-}
-
-/**
- * @name fileNamePrompt - creates prompt for fileName 
- * @param directory - current path 
- * @returns null
- */
-async function fileNamePrompt() {
-    fileNamePrompt = await inquirer.prompt([
-        {
-            type: "input",
-            name: "fileName",
-            message: "Name of the file? special characters not allowed (eg. products.usage):",
-        }
-    ])
-}
-
-/**
  * @name worker - this function immediately fires when all questions are done
- * @var absoluteAnswers - Merge all answers
+ * @param directory - current directory of the js-work-cli itself
+ * @param template - selected template of the user
+ * @param path - destination path inputed by the user
+ * @param fileName - user inputed filename for the template
+ * @param fileType - file type selected by user
  * @var destinationPathFolder - get the current path 
  * @var destinationPathWithFile - get the current path, this will be use to add the filename and the type (eg. C:Users/data/test.jsx)
  * @var snippetsPath - get the snippets path base on the user choice
- * @var type - file type
  * @var crudFiles - all custom crud files (controller, interface, schema and routes)
  * @returns null
  */
-async function worker(directory) {
+async function expressWorker(directory, template, path, fileName, fileType) {
     try {
 
-        // Add answers in const var
-        const absoluteAnswers = { ...answers, ...fileName }
-
         // Console Message
-        await PreparingMessage(absoluteAnswers.fileName)
+        await PreparingMessage(fileName)
 
         // Variables
-        let destinationPathFolder = `${currentPath}/`
+        let destinationPathFolder = `${currentPath}/${path}`
         let destinationPathWithFile = `${currentPath}/`
         let snippetsPath = `${directory}/src/snippets/express-snippets/`
-        let type = ""
+        let crudFiles = []
 
-        // Answer condition
-        if (absoluteAnswers.type === "JS")
-            type = ".js"
-        else
-            type = ".ts"
+        // Find the template in options 
+        // To check if existing
+        const templateObject = options.find((o) => o.template === template)
 
-        if (absoluteAnswers.starterChoice !== 'CRUD') {
-
-            // Filter object
-            const starter = options.filter(s => s.name === absoluteAnswers.starterChoice)
-            snippetsPath = `${snippetsPath}${type === ".js" ? "js" : "ts"}/${starter[0].file}${type}`
-
-            // Getting the exact destination file
-            destinationPathFolder = `${destinationPathFolder}${absoluteAnswers.createPath}`
-            destinationPathWithFile = `${destinationPathWithFile}${absoluteAnswers.createPath}/${absoluteAnswers.fileName}${type}`
-
-            // Console Message
-            await MiddleMessage()
-            ExpressHelperMessage(absoluteAnswers.starterChoice, absoluteAnswers.type)
-
-            // Workers
-            if (fs.existsSync(destinationPathFolder)) {
-
-                // Copy custom file to destination
-                await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
-            }
-
-            else {
-
-                // Create directories
-                await CreateDirectories(destinationPathFolder)
-
-                // Copy custom file to destination
-                await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
-            }
-
-            // Console Message
-            await FinalMessage(absoluteAnswers.fileName, type)
-        }
+        if (templateObject === undefined || templateObject === null)
+            ErrorMessage(`Cant find template ${template}. Kindly suggest it so we can provide that template soon! 😉😇`)
         else {
 
-            // Getting the exact destination file
-            destinationPathFolder = `${destinationPathFolder}${absoluteAnswers.createPath}`
-            snippetsPath = `${snippetsPath}${type === ".js" ? "js" : "ts"}/crud/`
-            let crudFiles = []
+            if (template !== 'crud') {
 
-            // Console Message
-            await MiddleMessage()
-            ExpressHelperMessage("CRUD", absoluteAnswers.type)
+                // Getting absolute snippets path
+                snippetsPath = `${snippetsPath}${fileType}/${templateObject.file}.${fileType}`
 
-            const dir = await fs.promises.opendir(snippetsPath)
-            for await (const file of dir) {
-                crudFiles.push({ path: `${snippetsPath}${file.name}`, filename: file.name, destinationPath: `${destinationPathWithFile}${absoluteAnswers.createPath}/${file.name}` })
+                // Getting the destination file
+                destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType}`
+
+                // Console Message
+                await MiddleMessage()
+                ExpressHelperMessage(templateObject.template, fileType)
+
+                // Workers
+                if (fs.existsSync(destinationPathFolder)) {
+
+                    // Copy custom file to destination
+                    await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                }
+                else {
+
+                    // Create directories
+                    await CreateDirectories(destinationPathFolder)
+
+                    // Copy custom file to destination
+                    await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                }
+
+                // Console Message
+                await FinalMessage(path, fileName, fileType)
+
             }
-
-            // Workers
-            if (fs.existsSync(destinationPathFolder)) {
-
-                // Copy custom files to destination
-                await Promise.all(crudFiles.map((file) => {
-                    fs.promises.copyFile(file.path, file.destinationPath)
-                }))
-            }
-                
             else {
 
-                // Create directories
-                await CreateDirectories(destinationPathFolder)
+                // Console Message
+                await MiddleMessage()
+                ExpressHelperMessage(templateObject.template, fileType)
 
-                // Copy custom files to destination
-                await Promise.all(crudFiles.map((file) => {
-                    fs.promises.copyFile(file.path, file.destinationPath)
-                }))
+                // Absolute snippetsPath
+                snippetsPath = `${snippetsPath}${fileType}/crud/`
+
+                // Create object per file then push to crudFiles array
+                const dir = await fs.promises.opendir(snippetsPath)
+
+                // Create object base on file properties and store in crudFiles array
+                for await (const file of dir) {
+                    crudFiles.push({ path: `${snippetsPath}${file.name}`, filename: file.name, destinationPath: `${destinationPathWithFile}${path}/${file.name}` })
+                }
+
+                // Workers
+                if (fs.existsSync(destinationPathFolder)) {
+
+                    // Copy custom files to destination
+                    await Promise.all(crudFiles.map((file) => {
+                        fs.promises.copyFile(file.path, file.destinationPath)
+                    }))
+                }
+                else {
+
+                    // Create directories
+                    await CreateDirectories(destinationPathFolder)
+
+                    // Copy custom files to destination
+                    await Promise.all(crudFiles.map((file) => {
+                        fs.promises.copyFile(file.path, file.destinationPath)
+                    }))
+                }
+
+                // Console Message
+                await CustomMessage(`Custom CRUD template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
             }
-
-            // Console Message
-            await FinalMessage("Custom CRUD", "")
-
         }
-
     } catch (err) {
         ErrorMessage()
     }
@@ -190,10 +138,10 @@ async function worker(directory) {
  */
 const ExpressHelperMessage = (starterChoice, fileType) => {
     switch (starterChoice) {
-        case "Express Config":
+        case "eConfig":
 
             // Notes
-            if (fileType === "JS") {
+            if (fileType === "js") {
                 console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
                 console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('express, cors, bodyParser, compression and helmet.')}`))
                 console.log(chalk.blueBright(`Example for installation dependencies: npm i express\n`))
@@ -204,7 +152,7 @@ const ExpressHelperMessage = (starterChoice, fileType) => {
                 console.log(chalk.blueBright(`Example for installation dependencies: npm i @types/express\n`))
             }
             break;
-        case "Mongoose Config":
+        case "mConfig":
 
             // Notes
             console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
@@ -212,24 +160,24 @@ const ExpressHelperMessage = (starterChoice, fileType) => {
             console.log(chalk.blueBright(`Example for installation dependencies: npm i mongoose.\n`))
             console.log(chalk.green(`Create .env file in root folder and add MONGO_DB=your@connectionStringValue \n`))
             break;
-        case "Routes":
+        case "routes":
 
             // Notes
             console.log(chalk.green(`Template already provided, just uncomment if needed. \n`))
             break;
-        case "Schema (Mongoose)":
+        case "schema":
 
             // Notes
-            if (fileType === "JS")
+            if (fileType === "js")
                 console.log(chalk.green(`Schema already provided, just add some objects inside Schema. \n`))
             else {
                 console.log(chalk.green(`Interface and Schema already provided, just add some property inside Interface. `))
                 console.log(chalk.green(`PS: Schema object must be equals to Interface properties. \n`))
             }
             break;
-        case "CRUD":
+        case "crud":
 
-            if (fileType === "JS") {
+            if (fileType === "js") {
                 console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
                 console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('express, mongoose, cors, bodyParser, compression and helmet.')}`))
                 console.log(chalk.blueBright(`Example for installation dependencies: npm i express\n`))
@@ -241,8 +189,8 @@ const ExpressHelperMessage = (starterChoice, fileType) => {
             }
 
             // Schema Notes
-            if (fileType === "JS")
-                console.log(chalk.green(`Schema already provided, just add some objects inside Schema. \n`))
+            if (fileType === "js")
+                console.log(chalk.green(`Schema already provided, just add some objects inside Schema.`))
             else {
                 console.log(chalk.green(`Interface and Schema already provided, just add some property inside Interface. `))
                 console.log(chalk.green(`PS: Schema object must be equals to Interface properties. \n`))
@@ -254,3 +202,5 @@ const ExpressHelperMessage = (starterChoice, fileType) => {
             break;
     }
 }
+
+export { expressWorker }
