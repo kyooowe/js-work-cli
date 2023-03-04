@@ -3,13 +3,15 @@
 import path from 'path'
 import fs from "fs"
 import Message from "../message/message.js"
-import { CorrectingNameInFile, CreateDirectories } from "../helper/helper.js"
+import { CorrectingNameInFile, CreateDirectories, DependenciesChecker, InstalledDependencies, ExecuteCommand } from "../helper/helper.js"
 import chalk from 'chalk'
+import { eReactDependenciesWithTypes } from '../enums/eDependencies.js'
 const { PreparingMessage, MiddleMessage, FinalMessage, CustomMessage, InfoMessage, ErrorMessage } = Message()
 //#endregionp
 
 //#region Local var
 const currentPath = path.resolve()
+const dependencies = await InstalledDependencies()
 //#endregion
 
 //#region Options
@@ -61,7 +63,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
 
                     // Console Message
                     await MiddleMessage()
-                    ReactHelperMessage('httpService', '')
+                    await ReactHelperMessage('httpService', '')
 
                     // Getting absolute snippets path
                     snippetsPath = `${snippetsPath}${fileType}/httpRequest/`
@@ -94,7 +96,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
                     }
 
                     // Console Message
-                    await InfoMessage(`HttpService and sample API request already provided.`)
+                    await InfoMessage(`HttpService and sample API request provided.`)
                     await CustomMessage(`Custom HttpService template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
 
                     break;
@@ -102,7 +104,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
 
                     // Console Message
                     await MiddleMessage()
-                    ReactHelperMessage('zustand', '')
+                    await ReactHelperMessage('zustand', '')
 
                     // Getting absolute snippets path
                     snippetsPath = `${snippetsPath}${fileType}/zustand.${fileType}`
@@ -133,7 +135,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
 
                     // Console Message
                     await MiddleMessage()
-                    ReactHelperMessage('debounce', '')
+                    await ReactHelperMessage('debounce', fileType)
 
                     // Getting absolute snippets path
                     snippetsPath = `${snippetsPath}${fileType}/debounce.${fileType}`
@@ -200,6 +202,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
         }
 
     } catch (err) {
+        console.log(err)
         ErrorMessage()
     }
 }
@@ -210,29 +213,77 @@ async function reactWorker(directory, template, path, fileName, fileType) {
  * @var fileType - file type
  * @returns null
  */
-const ReactHelperMessage = (starterChoice, fileType) => {
-    switch (starterChoice) {
-        case "httpService":
-            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('axios.')}`))
-            console.log(chalk.blueBright(`Example for installation dependencies: npm i axios\n`))
-            break;
-        case "zustand":
-            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('zustand.')}`))
-            console.log(chalk.blueBright(`Example for installation dependencies: npm i zustand\n`))
-            break;
-        case "debounce":
-            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('react.')}`))
-            console.log(chalk.blueBright(`Example for installation dependencies: npm i react\n`))
+const ReactHelperMessage = async (starterChoice, fileType) => {
 
-            if (fileType === "js")
-                console.log(chalk.green('Debounce usage: const debounceValue = useDebounce(state, timer) \n'))
-            else
-                console.log(chalk.green('Debounce usage: const debounceValue = useDebounce<type>(state, timer) \n'))
+    // Console Message
+    console.log(chalk.green(`Checking if required dependencies already installed. \n`))
+
+    switch (starterChoice) {
+
+        case "httpService": {
+
+            // Find required dependency in installed dependencies array
+            const reqDepsInstalled = dependencies.find((s) => s === 'axios')
+
+            if (reqDepsInstalled !== undefined)
+                console.log(chalk.green(`axios already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing axios.....`))
+                await ExecuteCommand('npm i axios')
+                console.log(chalk.green(`JS-Work-CLI has successfully installed axios. 😎 \n`))
+            }
+
+            break;
+        }
+
+        case "zustand": {
+
+            // Find required dependency in installed dependencies array
+            const reqDepsInstalled = dependencies.find((s) => s === 'zustand')
+
+            if (reqDepsInstalled !== undefined)
+                console.log(chalk.green(`zustand already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing zustand.....`))
+                await ExecuteCommand('npm i zustand')
+                console.log(chalk.green(`JS-Work-CLI has successfully installed zustand. 😎 \n`))
+            }
+
+            break;
+        }
+
+        case "debounce": {
+
+            // Find required dependency in installed dependencies array
+            const rDependencies = fileType === 'ts' ? ['react', 'react-dom', 'typescript'] : ['react', 'react-dom']
+            const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eReactDependenciesWithTypes)
+            let toBeInstalledDependenciesString = ''
+            
+            dObject.toBeInstalledDependencies.map((s) => {
+
+                if(toBeInstalledDependenciesString === '')
+                    toBeInstalledDependenciesString = s
+                else 
+                    toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
+
+            })
+
+            if (dObject.scripts === '')
+                console.log(chalk.green(`react, react-dom, typescript already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
+                await ExecuteCommand(`npm i ${dObject.scripts}`)
+                console.log(chalk.green(`JS-Work-CLI has successfully installed ${toBeInstalledDependenciesString}. 😎 \n`))
+            }
+
+            break;
+
+        }
+
+        default:
             break;
     }
 }
+
 
 export { reactWorker }

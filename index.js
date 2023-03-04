@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Current beta version: 1.0.14-beta
+// Current test version: 1.0.14-test
+
 //#region Import
 import { dirname } from "path"
 import { fileURLToPath } from "url"
@@ -13,7 +16,6 @@ const argv = yargs(hideBin(process.argv)).argv
 const { ErrorMessage } = Message()
 
 //#endregion
-
 
 /**
  * @name compileArguments - worker for arguments inputed by the user
@@ -34,6 +36,7 @@ const { ErrorMessage } = Message()
  * @returns null
  */
 async function compileArguments() {
+
 
     // Get the current directory
     const __filename = fileURLToPath(import.meta.url);
