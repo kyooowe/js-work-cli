@@ -14,10 +14,10 @@ npm i js-work-cli
 
 ## Documentation
 
-Currently, only two languages are supported (React and Express), but we plan to expand to include languages such as Svelte, Vue, and more.
+Currently, only two frameworks are supported (React and Express), but we plan to expand to include languages such as Svelte, Vue, and more.
 
-When **HasMultipleFiles** is checked in the table below, simply designate the **--fileName** as an **underscore (_)**
-The **--fileType** consists only of two values: **TS** and **JS**
+When **HasMultipleFiles** is checked in the table below, simply designate the **--fileName** argument as an **underscore (_)**.
+The **--fileType**w  argument consists only of two values: **TS** and **JS**
 
 **The scripts below are the arguments in the CLI**
 
@@ -42,7 +42,7 @@ npx js-work-cli --framework --template --folderPath --fileName --fileType
 | Template  | Description | HasMultipleFiles |
 | :---: | :--- | :---: |
 | `eConfig`  | Express config file  |   ⨉
-| `mConfig`  | Monghoose config file  | ⨉
+| `mConfig`  | Mongoose config file  | ⨉
 | `routes`  | Custom Routes setting |   ⨉
 | `schema`  | Custom Mongoose Schema  | ⨉
 | `crud`  | Custom CRUD (controller, schema, routes and interface provided)  |  ✓
@@ -92,6 +92,7 @@ Note: that the **CLI Generated folder** will only manifest itself if it is not c
 ## Soon to Support Languages
 - Vue
 - Svelte
+- More...
 
 #### Demo
 ![Demo](https://github.com/kyooowe/js-work-cli/blob/devel/showoff.gif)
