@@ -14,7 +14,7 @@ const currentPath = path.resolve()
 const dependencies = await InstalledDependencies()
 //#endregion
 
-//#region Options
+//#region OptionsF
 const options = [
     { file: 'plain', template: 'plain' },                 // Plain
     { file: 'pState', template: 'pState' },               // Plain useState
@@ -202,7 +202,6 @@ async function reactWorker(directory, template, path, fileName, fileType) {
         }
 
     } catch (err) {
-        console.log(err)
         ErrorMessage()
     }
 }
@@ -269,7 +268,7 @@ const ReactHelperMessage = async (starterChoice, fileType) => {
             })
 
             if (dObject.scripts === '')
-                console.log(chalk.green(`react, react-dom, typescript already installed. 😎 \n`))
+                console.log(chalk.green(`${toBeInstalledDependenciesString} already installed. 😎 \n`))
             else {
                 console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
                 await ExecuteCommand(`npm i ${dObject.scripts}`)

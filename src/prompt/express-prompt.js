@@ -3,12 +3,14 @@ import path from 'path'
 import fs from "fs"
 import Message from "../message/message.js"
 import chalk from "chalk"
-import { CreateDirectories } from "../helper/helper.js"
+import { CreateDirectories, DependenciesChecker, InstalledDependencies, ExecuteCommand } from "../helper/helper.js"
+import { eExpressDependenciesWithTypes } from '../enums/eDependencies.js'
 const { PreparingMessage, MiddleMessage, FinalMessage, CustomMessage, ErrorMessage } = Message()
 //#endregion
 
 //#region Local Var
 const currentPath = path.resolve()
+const dependencies = await InstalledDependencies()
 //#endregion
 
 //#region Options
@@ -64,7 +66,7 @@ async function expressWorker(directory, template, path, fileName, fileType) {
 
                 // Console Message
                 await MiddleMessage()
-                ExpressHelperMessage(templateObject.template, fileType)
+                await ExpressHelperMessage(templateObject.template, fileType)
 
                 // Workers
                 if (fs.existsSync(destinationPathFolder)) {
@@ -89,7 +91,7 @@ async function expressWorker(directory, template, path, fileName, fileType) {
 
                 // Console Message
                 await MiddleMessage()
-                ExpressHelperMessage(templateObject.template, fileType)
+                await ExpressHelperMessage(templateObject.template, fileType)
 
                 // Absolute snippetsPath
                 snippetsPath = `${snippetsPath}${fileType}/crud/`
@@ -136,70 +138,129 @@ async function expressWorker(directory, template, path, fileName, fileType) {
  * @var fileType - file type
  * @returns null
  */
-const ExpressHelperMessage = (starterChoice, fileType) => {
+const ExpressHelperMessage = async (starterChoice, fileType) => {
+
+    // Console Message
+    console.log(chalk.green(`Checking if required dependencies already installed. \n`))
+
     switch (starterChoice) {
-        case "eConfig":
+        case "eConfig": {
 
-            // Notes
-            if (fileType === "js") {
-                console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-                console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('express, cors, bodyParser, compression and helmet.')}`))
-                console.log(chalk.blueBright(`Example for installation dependencies: npm i express\n`))
-            }
+            // Find required dependency in installed dependencies array
+            const rDependencies = fileType === 'ts' ? ['express', 'cors', 'body-parse', 'compression', 'typescript'] : ['express', 'cors', 'body-parse', 'compression']
+            const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eExpressDependenciesWithTypes)
+            let toBeInstalledDependenciesString = ''
+
+            dObject.toBeInstalledDependencies.map((s) => {
+
+                if (toBeInstalledDependenciesString === '')
+                    toBeInstalledDependenciesString = s
+                else
+                    toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
+
+            })
+
+            if (dObject.scripts === '')
+                console.log(chalk.green(`${toBeInstalledDependenciesString} already installed. 😎 \n`))
             else {
-                console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-                console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('typescript, express, cors, bodyParser, compression and helmet.')}`))
-                console.log(chalk.blueBright(`Example for installation dependencies: npm i @types/express\n`))
+                console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
+                await ExecuteCommand(`npm i ${dObject.scripts}`)
+                console.log(chalk.green(`JS-Work-CLI has successfully installed ${toBeInstalledDependenciesString}. 😎 \n`))
             }
-            break;
-        case "mConfig":
 
-            // Notes
-            console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-            console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('mongoose.')}`))
-            console.log(chalk.blueBright(`Example for installation dependencies: npm i mongoose.\n`))
-            console.log(chalk.green(`Create .env file in root folder and add MONGO_DB=your@connectionStringValue \n`))
             break;
-        case "routes":
+        }
+        case "mConfig": {
 
-            // Notes
-            console.log(chalk.green(`Template already provided, just uncomment if needed. \n`))
-            break;
-        case "schema":
+            // Find required dependency in installed dependencies array
+            const reqDepsInstalled = dependencies.find((s) => s === 'mongoose')
 
-            // Notes
-            if (fileType === "js")
-                console.log(chalk.green(`Schema already provided, just add some objects inside Schema. \n`))
+            if (reqDepsInstalled !== undefined)
+                console.log(chalk.green(`mongoose already installed. 😎 \n`))
             else {
-                console.log(chalk.green(`Interface and Schema already provided, just add some property inside Interface. `))
-                console.log(chalk.green(`PS: Schema object must be equals to Interface properties. \n`))
+                console.log(chalk.green(`Installing mongoose.....`))
+                await ExecuteCommand('npm i mongoose')
+                console.log(chalk.green(`JS-Work-CLI has successfully installed mongoose. 😎 \n`))
             }
-            break;
-        case "crud":
 
-            if (fileType === "js") {
-                console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-                console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('express, mongoose, cors, bodyParser, compression and helmet.')}`))
-                console.log(chalk.blueBright(`Example for installation dependencies: npm i express\n`))
-            }
+            break;
+
+        }
+        case "routes": {
+
+            // Find required dependency in installed dependencies array
+            const reqDepsInstalled = dependencies.find((s) => s === 'express')
+
+            if (reqDepsInstalled !== undefined)
+                console.log(chalk.green(`express already installed. 😎 \n`))
             else {
-                console.log(chalk.blueBright(`Kindly disregard if dependecies already installed.`))
-                console.log(chalk.blueBright(`Need to install dependecies: ${chalk.green('typescript, mongoose, express, cors, bodyParser, compression and helmet.')}`))
-                console.log(chalk.blueBright(`Example for installation dependencies: npm i @types/express\n`))
+                console.log(chalk.green(`Installing express.....`))
+                await ExecuteCommand('npm i express')
+                console.log(chalk.green(`JS-Work-CLI has successfully installed express. 😎 \n`))
+            }
+
+            break;
+        }
+        case "schema": {
+
+            // Find required dependency in installed dependencies array
+            const reqDepsInstalled = dependencies.find((s) => s === 'express')
+
+            if (reqDepsInstalled !== undefined)
+                console.log(chalk.green(`express already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing express.....`))
+                await ExecuteCommand('npm i express')
+                console.log(chalk.green(`JS-Work-CLI has successfully installed express. 😎 \n`))
+
+                // Notes
+                if (fileType === "js")
+                    console.log(chalk.green(`Schema provided, just add some objects inside Schema.`))
+                else {
+                    console.log(chalk.green(`Interface and Schema provided, just add some property inside Interface. `))
+                    console.log(chalk.green(`PS: Schema object must be equals to Interface properties.`))
+                }
+            }
+
+            break;
+        }
+        case "crud": {
+
+            // Find required dependency in installed dependencies array
+            const rDependencies = fileType === 'ts' ? ['express', 'mongoose', 'cors', 'body-parse', 'compression', 'typescript'] : ['express', 'mongoose', 'cors', 'body-parse', 'compression']
+            const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eExpressDependenciesWithTypes)
+            let toBeInstalledDependenciesString = ''
+
+            dObject.toBeInstalledDependencies.map((s) => {
+
+                if (toBeInstalledDependenciesString === '')
+                    toBeInstalledDependenciesString = s
+                else
+                    toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
+
+            })
+
+            if (dObject.scripts === '')
+                console.log(chalk.green(`${toBeInstalledDependenciesString} already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
+                await ExecuteCommand(`npm i ${dObject.scripts}`)
+                console.log(chalk.green(`JS-Work-CLI has successfully installed ${toBeInstalledDependenciesString}. 😎 \n`))
             }
 
             // Schema Notes
             if (fileType === "js")
-                console.log(chalk.green(`Schema already provided, just add some objects inside Schema.`))
+                console.log(chalk.green(`Schema provided, just add some objects inside Schema.`))
             else {
-                console.log(chalk.green(`Interface and Schema already provided, just add some property inside Interface. `))
-                console.log(chalk.green(`PS: Schema object must be equals to Interface properties. \n`))
+                console.log(chalk.green(`Interface and Schema provided, just add some property inside Interface. `))
+                console.log(chalk.green(`PS: Schema object must be equals to Interface properties.`))
             }
 
-            // Route and Controller notes
-            console.log(chalk.green('Controller Templates already provided.'))
-            console.log(chalk.green(`Routes Template already provided. \n`))
+            console.log(chalk.green('Controller, Routes, Interface, Schema Templates provided. \n'))
+
             break;
+
+        }
     }
 }
 

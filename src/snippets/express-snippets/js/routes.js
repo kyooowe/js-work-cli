@@ -6,10 +6,10 @@ import { Router } from "express";
 const Router = Router()
 
 // Template
-// Router.post('/link', Controller)
+Router.post('/link', Controller)
 
 // When adding authentication middleware
-// Router.post('/link', AuthenticationMiddleWare, Controller)
+Router.post('/link', AuthenticationMiddleWare, Controller)
 
 //#endregion
 
