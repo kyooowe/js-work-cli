@@ -24,7 +24,9 @@ const options = [
     { file: 'stateEffectAndRef', template: 'stefr' },     // Built in useState, useEffect and useRef
     { file: 'httpService', template: 'httpService' },     // Custom Http Service with sample api request
     { file: 'zustand', template: 'zustand' },             // Custom Zustand 
-    { file: 'debounce', template: 'debounce' }            // Custom Zustand 
+    { file: 'debounce', template: 'debounce' },           // Custom Zustand 
+    { file: 'formik', template: 'formik' },               // Built in formik form,
+    { file: 'rhform', template: 'rhform' },                // Built in react-hook-form  
 ]
 //#endregion
 
@@ -162,6 +164,68 @@ async function reactWorker(directory, template, path, fileName, fileType) {
                     await CustomMessage(`Zustand template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
 
                     break;
+                case 'formik':
+
+                    // Console Message
+                    await MiddleMessage()
+                    await ReactHelperMessage('formik', fileType)
+
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/forms/formik.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Getting the destination file
+                    destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+
+                    // Console Message
+                    await CustomMessage(`Formik template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
+
+                    break;
+                case 'rhform':
+
+                    // Console Message
+                    await MiddleMessage()
+                    await ReactHelperMessage('rhform', fileType)
+                    
+                    // Getting absolute snippets path
+                    snippetsPath = `${snippetsPath}${fileType}/forms/rhform.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Getting the destination file
+                    destinationPathWithFile = `${destinationPathWithFile}${path}/${fileName}.${fileType === "js" ? "jsx" : "tsx"}`
+
+                    // Workers
+                    if (fs.existsSync(destinationPathFolder)) {
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+                    else {
+
+                        // Create directories
+                        await CreateDirectories(destinationPathFolder)
+
+                        // Copy custom file to destination
+                        await fs.promises.copyFile(snippetsPath, destinationPathWithFile)
+                    }
+
+                    // Console Message
+                    await CustomMessage(`React-Hook-Form template is now now ready in ${path}.  Thanks for using JS Work-CLI. 💙💚`)
+
+                    break;
                 default: // React Hooks
 
                     // Getting absolute snippets path
@@ -202,6 +266,7 @@ async function reactWorker(directory, template, path, fileName, fileType) {
         }
 
     } catch (err) {
+        console.log(err)
         ErrorMessage()
     }
 }
@@ -257,18 +322,18 @@ const ReactHelperMessage = async (starterChoice, fileType) => {
             const rDependencies = fileType === 'ts' ? ['react', 'react-dom', 'typescript'] : ['react', 'react-dom']
             const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eReactDependenciesWithTypes)
             let toBeInstalledDependenciesString = ''
-            
+
             dObject.toBeInstalledDependencies.map((s) => {
 
-                if(toBeInstalledDependenciesString === '')
+                if (toBeInstalledDependenciesString === '')
                     toBeInstalledDependenciesString = s
-                else 
+                else
                     toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
 
             })
 
             if (dObject.scripts === '')
-                console.log(chalk.green(`${toBeInstalledDependenciesString} already installed. 😎 \n`))
+                console.log(chalk.green(`react, react-dom already installed. 😎 \n`))
             else {
                 console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
                 await ExecuteCommand(`npm i ${dObject.scripts}`)
@@ -277,6 +342,60 @@ const ReactHelperMessage = async (starterChoice, fileType) => {
 
             break;
 
+        }
+
+        case 'formik': {
+
+            // Find required dependency in installed dependencies array
+            const rDependencies = fileType === 'ts' ? ['formik', 'yup'] : ['formik', 'yup']
+            const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eReactDependenciesWithTypes)
+            let toBeInstalledDependenciesString = ''
+
+            dObject.toBeInstalledDependencies.map((s) => {
+
+                if (toBeInstalledDependenciesString === '')
+                    toBeInstalledDependenciesString = s
+                else
+                    toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
+
+            })
+
+            if (dObject.scripts === '')
+                console.log(chalk.green(`formik, yup already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
+                await ExecuteCommand(`npm i ${dObject.scripts}`)
+                console.log(chalk.green(`JS-Work-CLI has successfully installed ${toBeInstalledDependenciesString}. 😎 \n`))
+            }
+
+            break;
+        }
+
+        case 'rhform': {
+
+            // Find required dependency in installed dependencies array
+            const rDependencies = ['react-hook-form', '@hookform/resolvers', 'yup']
+            const dObject = DependenciesChecker(dependencies, rDependencies, fileType, eReactDependenciesWithTypes)
+            let toBeInstalledDependenciesString = ''
+
+            dObject.toBeInstalledDependencies.map((s) => {
+
+                if (toBeInstalledDependenciesString === '')
+                    toBeInstalledDependenciesString = s
+                else
+                    toBeInstalledDependenciesString = `${toBeInstalledDependenciesString}, ${s}`
+
+            })
+
+            if (dObject.scripts === '')
+                console.log(chalk.green(`react-hook-form, @hookform/resolvers and yup already installed. 😎 \n`))
+            else {
+                console.log(chalk.green(`Installing ${toBeInstalledDependenciesString}.....`))
+                await ExecuteCommand(`npm i ${dObject.scripts}`)
+                console.log(chalk.green(`JS-Work-CLI has successfully installed ${toBeInstalledDependenciesString}. 😎 \n`))
+            }
+
+            break;
         }
 
         default:
