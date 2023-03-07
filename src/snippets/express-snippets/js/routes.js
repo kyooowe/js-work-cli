@@ -1,16 +1,16 @@
-//#region Import
-import { Router } from "express";
-//#endregion
+// #region Import
+import { Router } from 'express'
+// #endregion
 
-//#region Action
-const Router = Router()
+// #region Action
+const ConfigRouter = Router()
 
 // Template
-Router.post('/link', Controller)
+// ConfigRouter.post('/link', Controller)
 
 // When adding authentication middleware
-Router.post('/link', AuthenticationMiddleWare, Controller)
+// ConfigRouter.post('/link', AuthenticationMiddleWare, Controller)
 
-//#endregion
+// #endregion
 
-export { Router }
+export { ConfigRouter }
