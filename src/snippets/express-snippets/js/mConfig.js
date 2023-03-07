@@ -1,8 +1,8 @@
-//#region Import
-import mongoose, { ConnectOptions } from 'mongoose';
-//#endregion
+// #region Import
+import mongoose from 'mongoose'
+// #endregion
 
-//#region Config
+// #region Config
 
 // Exit application when error occurs
 mongoose.connection.on('error', () => {
@@ -16,12 +16,11 @@ export const Connect = async () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             keepAlive: true
-        });
+        })
 
         console.log('MongoDB Connected')
     } catch (err) {
         console.log('Failed to connect to MongoDB', err)
     }
-
 }
-//#endregion
+// #endregion

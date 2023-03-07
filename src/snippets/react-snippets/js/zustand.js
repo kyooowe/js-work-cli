@@ -1,18 +1,18 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
 
 // Default products data
 const productsData = {
-	name: 'products',
-	quantity: 0
+    name: 'products',
+    quantity: 0
 }
 
-//#region State Management
+// #region State Management
 const useStore = create((set) => ({
-	products: productsData,
-	storeProducts: (data) => {
-		set({ products: data })
-	}
-}));
-//#endregion
+    products: productsData,
+    storeProducts: (data) => {
+        set({ products: data })
+    }
+}))
+// #endregion
 
-export { useStore };
+export { useStore }
